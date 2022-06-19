@@ -63,6 +63,42 @@ mod config_test {
     }
 
     #[test]
+    fn should_return_valid_application_id() {
+        let env = var("DRAGONBOTZ_APP_ID");
+        let mut app_id = String::new();
+
+        if let Ok(id) = env {
+            app_id = id;
+        }
+
+        let mut converted: u64 = 0;
+        
+        if let Ok(conv) = app_id.parse::<u64>() {
+            converted = conv;
+        }
+
+        assert_eq!(converted, Config::environment_var::<u64>("DRAGONBOTZ_APP_ID"));
+    }
+
+    #[test]
+    fn should_return_valid_test_guild_id() {
+        let env = var("DRAGONBOTZ_TEST_GUILD_ID");
+        let mut test_guild = String::new();
+
+        if let Ok(id) = env {
+            test_guild = id;
+        }
+
+        let mut converted: u64 = 0;
+        
+        if let Ok(conv) = test_guild.parse::<u64>() {
+            converted = conv;
+        }
+
+        assert_eq!(converted, Config::environment_var::<u64>("DRAGONBOTZ_TEST_GUILD_ID"));
+    }
+
+    #[test]
     #[should_panic]
     fn should_panic_when_bad_conversion() {
         Config::environment_var::<u64>("DRAGONBOTZ_TOKEN");
