@@ -9,6 +9,9 @@ use serenity::builder::{
 
 use serenity::utils::Color;
 
+// utils
+use crate::utils::other::Other;
+
 
 #[derive(Clone)]
 pub struct Embed {
@@ -21,6 +24,28 @@ pub struct Embed {
 }
 
 impl Embed {
+
+    /// Returns a default embed
+    pub fn new() -> CreateEmbed {
+        let mut embed = Embed {
+            author: None,
+            color: None,
+            description: None,
+            footer: None,
+            image: None,
+            thumbnail: None,
+        };
+
+        let bot_avatar = Other::bot_avatar_url();
+        let bot_name = Other::bot_name();
+        let bot_color = Other::bot_color();
+
+        embed.author(bot_avatar.clone(), bot_name.clone(), String::from(""));
+        embed.footer(bot_avatar.clone(), bot_name.clone());
+        embed.color(bot_color.0.clone(), bot_color.1.clone(), bot_color.2.clone());
+
+        embed.create()
+    }
 
     /// Returns an instance of CreateEmbed according to the fields that had 
     /// been set
@@ -60,7 +85,7 @@ impl Embed {
     /// * icon_url - the author's icon url
     /// * name - the author's name
     /// * url - the author's url
-    pub fn author(&mut self, icon_url: &str, name: &str, url: &str) -> Self {
+    pub fn author(&mut self, icon_url: String, name: String, url: String) -> Self {
         let mut author = CreateEmbedAuthor::default();
 
         author.icon_url(icon_url);
@@ -116,7 +141,7 @@ impl Embed {
     /// ## Arguments:
     /// * icon_url - the footer's icon url
     /// * text - the footer's text
-    pub fn footer(&mut self, icon_url: &str, text: &str) -> Self {
+    pub fn footer(&mut self, icon_url: String, text: String) -> Self {
         let mut footer = CreateEmbedFooter::default();
 
         footer.icon_url(icon_url);
