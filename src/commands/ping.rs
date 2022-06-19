@@ -20,4 +20,8 @@ impl Command for PingCommand {
         "A simple ping command.".to_string()
     }
 
+    async fn content(&self) -> Option<String> {
+        Some("Pong ! Eheh".to_string())
+    }
+
 }
