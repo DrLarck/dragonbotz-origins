@@ -21,12 +21,13 @@ pub struct Embed {
     footer: Option<CreateEmbedFooter>,
     image: Option<String>,
     thumbnail: Option<String>,
+    title: Option<String>,
 }
 
 impl Embed {
 
     /// Returns a default embed
-    pub fn new() -> CreateEmbed {
+    pub fn new() -> Self {
         let mut embed = Embed {
             author: None,
             color: None,
@@ -34,6 +35,7 @@ impl Embed {
             footer: None,
             image: None,
             thumbnail: None,
+            title: None,
         };
 
         let bot_avatar = Other::bot_avatar_url();
@@ -44,7 +46,7 @@ impl Embed {
         embed.footer(bot_avatar.clone(), bot_name.clone());
         embed.color(bot_color.0.clone(), bot_color.1.clone(), bot_color.2.clone());
 
-        embed.create()
+        embed
     }
 
     /// Returns an instance of CreateEmbed according to the fields that had 
@@ -74,6 +76,10 @@ impl Embed {
 
         if let Some(thumbnail) = self.thumbnail.clone() {
             embed.thumbnail(thumbnail);
+        }
+
+        if let Some(title) = self.title.clone() {
+            embed.title(title);
         }
 
         embed
@@ -114,6 +120,10 @@ impl Embed {
     /// ## Arguments:
     /// * description - the description
     pub fn description(&mut self, description: String) -> Self {
+        if description.len() > 4096 {
+            panic!("Error in Embed::description: The description is too long.")
+        }
+        
         self.description = Some(description);
 
         self.clone()
@@ -168,6 +178,16 @@ impl Embed {
     /// * url - the thumbnail url
     pub fn thumbnail(&mut self, url: String) -> Self {
         self.thumbnail = Some(url);
+
+        self.clone()
+    }
+
+    /// Sets the embed's title
+    /// 
+    /// ## Arguments:
+    /// * title - the embed's title
+    pub fn title(&mut self, title: String) -> Self {
+        self.title = Some(title);
 
         self.clone()
     }
