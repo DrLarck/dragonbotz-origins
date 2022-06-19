@@ -31,4 +31,9 @@ impl Bot {
         self.application_id.clone()
     }
 
+    /// Returns the bot's test guild id
+    pub fn test_guild_id(&self) -> u64 {
+        self.test_guild_id.clone()
+    }
+
 }
