@@ -10,7 +10,11 @@ use serenity::client::Context;
 use serenity::model::{
     gateway::Ready,
     id::GuildId,
-    interactions::application_command::ApplicationCommand,
+    interactions::{
+        Interaction,
+        InteractionResponseType,
+        application_command::ApplicationCommand,
+    }
 };
 
 
@@ -105,6 +109,65 @@ impl EventHandler for Bot {
         // displays all the added commands
         for command in added_commands {
             println!("Command {:?} had been added", command);
+        }
+
+    }
+
+    async fn interaction_create(&self, context: Context, 
+                                interaction: Interaction) {
+
+        // the command that had been used
+        let called = match interaction.application_command() {
+            Some(command) => command,
+            None => panic!("Error in Bot::interaction_create: Unable to retrieve the command that had been called."),
+        };
+
+        // get the name of the command that had been called
+        let command_data = called.data.clone();
+        let command_name = command_data.name.as_str();
+
+        let bot_commands = self.commands();
+        if bot_commands.contains_key(command_name) {
+            
+            let command_to_run = &bot_commands[command_name];
+            let command_content = command_to_run
+                .content()
+                .await
+                .clone();
+            
+            let command_embed = command_to_run
+                .embed()
+                .await
+                .clone();
+
+            let interaction_creation = called.create_interaction_response(&context.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        let mut sendable = false;
+
+                        if let Some(content) = command_content {
+                            message.content(content);
+                            sendable = true;
+                        }
+
+                        if let Some(embed) = command_embed {
+                            message.add_embed(embed);
+                            sendable = true;
+                        }
+
+                        if !sendable {
+                            panic!("Error in Bot::interaction_create: Nothing to be sent.");
+                        }
+
+                        message
+                    })
+            }).await;
+
+            if let Err(error) = interaction_creation {
+                panic!("Error in Bot::interaction_create: Error creating response for command \"{}\": {}.", command_name, error)
+            }
+
         }
 
     }
