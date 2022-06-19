@@ -21,4 +21,14 @@ impl Bot {
         }
     }
 
+    /// Returns the bot's token
+    pub fn token(&self) -> String {
+        self.token.clone()
+    }
+
+    /// Returns the bot's application id
+    pub fn application_id(&self) -> u64 {
+        self.application_id.clone()
+    }
+
 }
