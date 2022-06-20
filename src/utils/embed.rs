@@ -61,7 +61,7 @@ impl<'a> Embed<'a> {
             embed.set_author(author);
         }
 
-        if let Some(color) = self.color {
+        if let Some(color) = self.color.clone() {
             embed.color(color);
         }
 
