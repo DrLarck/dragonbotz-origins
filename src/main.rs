@@ -45,7 +45,7 @@ async fn main() {
     );
 
     let application_id = bot.application_id();
-    let pre_client = Client::builder(bot.token(), GatewayIntents::empty())
+    let pre_client = Client::builder(bot.token(), GatewayIntents::default())
         .event_handler(bot)
         .application_id(application_id)
         .await;
