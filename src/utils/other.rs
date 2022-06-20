@@ -1,7 +1,7 @@
 
 // lib
     // serenity
-use serenity::model::user::CurrentUser;
+use serenity::client::Context;
 
 
 pub struct Other;
@@ -9,15 +9,17 @@ pub struct Other;
 impl Other {
 
     /// Returns the bot's avatar url
-    pub fn bot_avatar_url() -> String {
-        let bot = CurrentUser::default();
+    pub fn bot_avatar_url(context: &Context) -> String {
+        let cache = context.clone().cache;
+        let bot = cache.current_user();
 
         bot.face()
     }
 
     /// Returns the bot's name
-    pub fn bot_name() -> String {
-        let bot = CurrentUser::default();
+    pub fn bot_name(context: &Context) -> String {
+        let cache = context.clone().cache;
+        let bot = cache.current_user();
 
         bot.name
     }

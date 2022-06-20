@@ -131,12 +131,12 @@ impl EventHandler for Bot {
             
             let command_to_run = &bot_commands[command_name];
             let command_content = command_to_run
-                .content()
+                .content(&context)
                 .await
                 .clone();
             
             let command_embed = command_to_run
-                .embed()
+                .embed(&context)
                 .await
                 .clone();
 

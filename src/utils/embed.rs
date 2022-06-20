@@ -7,6 +7,7 @@ use serenity::builder::{
     CreateEmbedFooter,
 };
 
+use serenity::client::Context;
 use serenity::utils::Color;
 
 // utils
@@ -14,7 +15,8 @@ use crate::utils::other::Other;
 
 
 #[derive(Clone)]
-pub struct Embed {
+pub struct Embed<'a> {
+    context: &'a Context,
     author: Option<CreateEmbedAuthor>,
     color: Option<Color>,
     description: Option<String>,
@@ -24,11 +26,12 @@ pub struct Embed {
     title: Option<String>,
 }
 
-impl Embed {
+impl<'a> Embed<'a> {
 
     /// Returns a default embed
-    pub fn new() -> Self {
+    pub fn new(context: &'a Context) -> Self {
         let mut embed = Embed {
+            context,
             author: None,
             color: None,
             description: None,
@@ -38,8 +41,8 @@ impl Embed {
             title: None,
         };
 
-        let bot_avatar = Other::bot_avatar_url();
-        let bot_name = Other::bot_name();
+        let bot_avatar = Other::bot_avatar_url(context);
+        let bot_name = Other::bot_name(context);
         let bot_color = Other::bot_color();
 
         embed.author(bot_avatar.clone(), bot_name.clone(), String::from(""));
