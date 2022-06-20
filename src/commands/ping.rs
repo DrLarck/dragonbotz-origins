@@ -10,7 +10,6 @@ use crate::core::command::Command;
 
 // utils
 use crate::utils::embed::Embed;
-use crate::utils::other::Other;
 
 
 pub struct PingCommand;
@@ -26,7 +25,7 @@ impl Command for PingCommand {
         "A simple ping command.".to_string()
     }
 
-    async fn content(&self, context: &Context) -> Option<String> {
+    async fn content(&self, _: &Context) -> Option<String> {
         Some("Pong ! Eheh".to_string())
     }
 
@@ -35,6 +34,8 @@ impl Command for PingCommand {
 
         embed.title("This is title".to_string());
         embed.description("This is a short description".to_string());
+        embed.image("https://i.imgur.com/jgseMqC.png".to_string());
+        embed.thumbnail("https://i.imgur.com/JwEHf59.png".to_string());
         embed.add_field("This is a new field".to_string(), "this is the value of my field".to_string(), false);
         embed.add_field("This is a field under my top field".to_string(), "value lol".to_string(), true);
         embed.add_field("This is a field on the right".to_string(), "another value :)".to_string(), true);
