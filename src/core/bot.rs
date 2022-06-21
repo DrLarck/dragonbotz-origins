@@ -16,6 +16,7 @@ use serenity::model::{
         application_command::ApplicationCommand,
     }
 };
+use serenity::builder::CreateApplicationCommandOption;
 
 
 // core
@@ -86,10 +87,20 @@ impl EventHandler for Bot {
             &context.http, |command| {
 
                 for (_key, cmd) in bot_commands {
+
                     command.create_application_command(|new_command| {
+                        
+                        // creating the interaction
                         new_command
                             .name(cmd.name())
-                            .description(cmd.description())
+                            .description(cmd.description());
+                        
+                        // adding options to the interaction
+                        if let Some(options) = cmd.options() {
+                            new_command.set_options(options);
+                        }
+
+                        new_command
                     });
                 }
 
