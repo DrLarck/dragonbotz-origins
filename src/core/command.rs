@@ -40,9 +40,32 @@ pub trait Command: Sync + Send {
 
     /// Returns the command's action row
     async fn action_row(self: &Self, 
-                        _context: &Context, 
-                        _options: &Vec<ApplicationCommandInteractionDataOption>) 
-        -> Option<CreateActionRow> { None }
+                        context: &Context, 
+                        options: &Vec<ApplicationCommandInteractionDataOption>) 
+        -> Option<CreateActionRow> { 
+        
+        // tells if the command's action row is empty
+        let mut empty = true;
+        let action_buttons = self.buttons(context, options).await;
+        
+        if let Some(_) = action_buttons {
+            empty = false;
+        }
+
+        if empty {
+            println!("The action_row is empty");
+            return None;
+        }
+
+        let mut action_row = CreateActionRow::default();
+        if let Some(buttons) = action_buttons {
+            for button in buttons {
+                action_row.add_button(button);
+            }
+        }
+
+        Some(action_row)
+    }
     
     /// Returns the command's buttons
     async fn buttons(self: &Self,

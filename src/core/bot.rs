@@ -148,13 +148,15 @@ impl EventHandler for Bot {
 
             let command_content = command_to_run
                 .content(&context, &command_options)
-                .await
-                .clone();
+                .await;
             
             let command_embed = command_to_run
                 .embed(&context, &command_options)
-                .await
-                .clone();
+                .await;
+
+            let command_action_row = command_to_run
+                .action_row(&context, &command_options)
+                .await;
 
             let interaction_creation = called.create_interaction_response(&context.http, |response| {
                 response
@@ -170,6 +172,12 @@ impl EventHandler for Bot {
                         if let Some(embed) = command_embed {
                             message.add_embed(embed);
                             sendable = true;
+                        }
+
+                        if let Some(action_row) = command_action_row {
+                            message.components(|components| {
+                                components.add_action_row(action_row)
+                            });
                         }
 
                         if !sendable {
