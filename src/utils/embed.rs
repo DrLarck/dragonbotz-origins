@@ -11,7 +11,7 @@ use serenity::client::Context;
 use serenity::utils::Color;
 
 // utils
-use crate::utils::other::Other;
+use crate::utils::other::Utils;
 
 
 #[derive(Clone)]
@@ -41,9 +41,9 @@ impl<'a> Embed<'a> {
             title: None,
         };
 
-        let bot_avatar = Other::bot_avatar_url(context);
-        let bot_name = Other::bot_name(context);
-        let bot_color = Other::bot_color();
+        let bot_avatar = Utils::bot_avatar_url(context);
+        let bot_name = Utils::bot_name(context);
+        let bot_color = Utils::bot_color();
 
         embed.author(bot_avatar.clone(), bot_name.clone(), String::from(""));
         embed.footer(bot_avatar.clone(), bot_name.clone());
