@@ -141,13 +141,18 @@ impl EventHandler for Bot {
         if bot_commands.contains_key(command_name) {
             
             let command_to_run = &bot_commands[command_name];
+
+            // get the command's option value
+            let command_options = command_data
+                .options;
+
             let command_content = command_to_run
-                .content(&context)
+                .content(&context, &command_options)
                 .await
                 .clone();
             
             let command_embed = command_to_run
-                .embed(&context)
+                .embed(&context, &command_options)
                 .await
                 .clone();
 
