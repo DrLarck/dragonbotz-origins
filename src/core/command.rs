@@ -1,12 +1,23 @@
 
 // lib
+    // std
+use std::sync::{
+    Arc,
+    Mutex,
+};
+
     // serenity
 use serenity::async_trait;
 use serenity::builder::{
     CreateEmbed,
     CreateApplicationCommandOption,
 };
+
+use serenity::model::interactions::application_command::ApplicationCommandInteractionDataOption;
 use serenity::client::Context;
+
+    // tokio
+use tokio;
 
 
 #[async_trait]
@@ -22,9 +33,9 @@ pub trait Command: Sync + Send {
     fn options(self: &Self) -> Option<Vec<CreateApplicationCommandOption>> { None }
 
     /// Returns the command's content
-    async fn content(self: &Self, _context: &Context) -> Option<String> { None }
+    async fn content(self: &Self, _context: &Context, _options: &Vec<ApplicationCommandInteractionDataOption>) -> Option<String> { None }
 
     /// Returns the command's embed
-    async fn embed(self: &Self, _context: &Context) -> Option<CreateEmbed> { None }
+    async fn embed(self: &Self, _context: &Context, _options: &Vec<ApplicationCommandInteractionDataOption>) -> Option<CreateEmbed> { None }
 
 }
