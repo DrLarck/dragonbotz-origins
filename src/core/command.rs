@@ -1,16 +1,12 @@
 
 // lib
-    // std
-use std::sync::{
-    Arc,
-    Mutex,
-};
-
     // serenity
 use serenity::async_trait;
 use serenity::builder::{
     CreateEmbed,
     CreateApplicationCommandOption,
+    CreateActionRow,
+    CreateButton,
 };
 
 use serenity::model::interactions::application_command::ApplicationCommandInteractionDataOption;
@@ -27,12 +23,31 @@ pub trait Command: Sync + Send {
     fn description(self: &Self) -> String;
 
     /// Returns the command's options
-    fn options(self: &Self) -> Option<Vec<CreateApplicationCommandOption>> { None }
+    fn options(self: &Self) 
+        -> Option<Vec<CreateApplicationCommandOption>> { None }
 
     /// Returns the command's content
-    async fn content(self: &Self, _context: &Context, _options: &Vec<ApplicationCommandInteractionDataOption>) -> Option<String> { None }
+    async fn content(self: &Self, 
+                     _context: &Context, 
+                     _options: &Vec<ApplicationCommandInteractionDataOption>) 
+        -> Option<String> { None }
 
     /// Returns the command's embed
-    async fn embed(self: &Self, _context: &Context, _options: &Vec<ApplicationCommandInteractionDataOption>) -> Option<CreateEmbed> { None }
+    async fn embed(self: &Self, 
+                   _context: &Context, 
+                   _options: &Vec<ApplicationCommandInteractionDataOption>)
+        -> Option<CreateEmbed> { None }
+
+    /// Returns the command's action row
+    async fn action_row(self: &Self, 
+                        _context: &Context, 
+                        _options: &Vec<ApplicationCommandInteractionDataOption>) 
+        -> Option<CreateActionRow> { None }
+    
+    /// Returns the command's buttons
+    async fn buttons(self: &Self,
+                     _context: &Context,
+                     _options: &Vec<ApplicationCommandInteractionDataOption>)
+        -> Option<Vec<CreateButton>> { None }
 
 }
