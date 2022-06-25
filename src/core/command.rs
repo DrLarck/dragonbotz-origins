@@ -16,9 +16,6 @@ use serenity::builder::{
 use serenity::model::interactions::application_command::ApplicationCommandInteractionDataOption;
 use serenity::client::Context;
 
-    // tokio
-use tokio;
-
 
 #[async_trait]
 pub trait Command: Sync + Send {
