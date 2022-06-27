@@ -1,5 +1,8 @@
 
 // lib
+    // std
+use std::time;
+
     // serenity
 use serenity::async_trait;
 use serenity::builder::{
@@ -72,5 +75,8 @@ pub trait Command: Sync + Send {
                      _context: &Context,
                      _options: &Vec<ApplicationCommandInteractionDataOption>)
         -> Option<Vec<CreateButton>> { None }
+
+    /// Returns the timeout time
+    async fn timeout(self: &Self) -> Option<time::Duration>;
 
 }
