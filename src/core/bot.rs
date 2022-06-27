@@ -13,11 +13,8 @@ use serenity::model::interactions::{
     Interaction,
     InteractionResponseType,
 };
-
-use serenity::model::interactions::application_command::{
-    ApplicationCommand,
-    ApplicationCommandInteraction,
-};
+use serenity::model::interactions::message_component::MessageComponentInteraction;
+use serenity::model::interactions::application_command::ApplicationCommandInteraction;
 
 
 // core
@@ -137,7 +134,7 @@ trait BotUtils {
 
                         // check if there is something to send
                         if !sendable {
-                            panic!("Error in Bot::interaction_create: Nothing to be sent.");
+                            panic!("Error in Bot::execute_slash_command: Nothing to be sent.");
                         }
                         
                         message
@@ -147,11 +144,34 @@ trait BotUtils {
         ).await;
 
         if let Err(error) = interaction_creation {
-            panic!("Error in Bot::interaction_create: Error creating response for command \"{}\": {}.", command_name, error)
+            panic!("Error in Bot::execute_slash_command: Error creating response for command \"{}\": {}.", command_name, error)
         }
 
     }
 
+    /// Executes the procedure for a message component interaction
+    async fn execute_component_interaction(self: &Self,
+                                           context: &Context,
+                                           component: &MessageComponentInteraction) {
+        let interaction_response = component.create_interaction_response(
+            &context.http, 
+            |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(
+                        |message| {
+                            message.content("You clicked on a button bro !");
+                            
+                            message
+                        }
+                    )
+            }
+        ).await;
+
+        if let Err(error) = interaction_response {
+            panic!("Error in Bot::execute_component_interaction: Error creating followup response: {}.", error)
+        }
+    }
 }
 
 #[async_trait]
@@ -215,7 +235,7 @@ impl EventHandler for Bot {
 
         // if the interaction is component interaction (button, etc.)
         if let Some(component) = interaction.clone().message_component() {
-            println!("A button had been clicked.");
+            self.execute_component_interaction(&context, &component).await;
         }
 
     }
