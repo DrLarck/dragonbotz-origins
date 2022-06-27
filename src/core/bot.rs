@@ -7,16 +7,17 @@ use std::collections::HashMap;
 use serenity::async_trait;
 use serenity::prelude::EventHandler;
 use serenity::client::Context;
-use serenity::model::{
-    gateway::Ready,
-    id::GuildId,
-    interactions::{
-        Interaction,
-        InteractionResponseType,
-        application_command::ApplicationCommand,
-    }
+use serenity::model::gateway::Ready;
+use serenity::model::id::GuildId;
+use serenity::model::interactions::{
+    Interaction,
+    InteractionResponseType,
 };
-use serenity::builder::CreateApplicationCommandOption;
+
+use serenity::model::interactions::application_command::{
+    ApplicationCommand,
+    ApplicationCommandInteraction,
+};
 
 
 // core
@@ -65,8 +66,98 @@ impl Bot {
         self.test_guild_id.clone()
     }
 
+}
+
+#[async_trait]
+trait BotUtils {
+
     /// Returns the bot's commands
-    pub fn commands(&self) -> &HashMap<String, Box<dyn Command>> {
+    async fn commands(self: &Self) -> &HashMap<String, Box<dyn Command>>;
+
+    /// Executes the procedure for a slash command
+    async fn execute_slash_command(self: &Self,
+                                   context: &Context,
+                                   command: &ApplicationCommandInteraction) {
+
+        // get the name of the command that had been called
+        let command_data = command.data.clone();
+        let command_name = command_data.name.as_str();
+
+        let bot_commands = self.commands().await;
+
+        if !bot_commands.contains_key(command_name) {
+            panic!("Error in Bot::execute_slash_command: Unable to find command \"{}\"", command_name)
+        }
+        
+        // fins the command to run
+        let command_to_run = &bot_commands[command_name];
+
+        // get the command's option value
+        let command_options = command_data
+            .options;
+
+        let command_content = command_to_run
+            .content(&context, &command_options)
+            .await;
+        
+        let command_embed = command_to_run
+            .embed(&context, &command_options)
+            .await;
+
+        let command_action_row = command_to_run
+            .action_row(&context, &command_options)
+            .await;
+
+        let interaction_creation = command.create_interaction_response(
+            &context.http, 
+            |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        let mut sendable = false;
+                        
+                        // check if the command has message content
+                        if let Some(content) = command_content {
+                            message.content(content);
+                            sendable = true;
+                        }
+
+                        // check if the command has an embed
+                        if let Some(embed) = command_embed {
+                            message.add_embeds(vec![embed]);
+                            sendable = true;
+                        }
+
+                        // check if the command has an action row
+                        if let Some(action_row) = command_action_row {
+                            message.components(|components| {
+                                components.add_action_row(action_row)
+                            });
+                        }
+
+                        // check if there is something to send
+                        if !sendable {
+                            panic!("Error in Bot::interaction_create: Nothing to be sent.");
+                        }
+                        
+                        message
+                    }
+                )
+            }
+        ).await;
+
+        if let Err(error) = interaction_creation {
+            panic!("Error in Bot::interaction_create: Error creating response for command \"{}\": {}.", command_name, error)
+        }
+
+    }
+
+}
+
+#[async_trait]
+impl BotUtils for Bot {
+
+    async fn commands(&self) -> &HashMap<String, Box<dyn Command>> {
         &self.commands
     }
 
@@ -79,11 +170,10 @@ impl EventHandler for Bot {
 
         // init
         let test_guild = GuildId(self.test_guild_id());
-        let bot_commands = self.commands();
-        let mut added_commands = Vec::<ApplicationCommand>::new();
+        let bot_commands = self.commands().await;
 
         // for every command stored in the bot, create a slash command
-        let temp_added_commands = test_guild.set_application_commands(
+        let added_commands = test_guild.set_application_commands(
             &context.http, |command| {
 
                 for (_key, cmd) in bot_commands {
@@ -100,6 +190,8 @@ impl EventHandler for Bot {
                             new_command.set_options(options);
                         }
 
+                        println!("Created command: \"{}\"", cmd.name());
+
                         new_command
                     });
                 }
@@ -108,90 +200,22 @@ impl EventHandler for Bot {
                 
             }).await;
         
-        if let Ok(temp) = temp_added_commands {
-            added_commands = temp;
-        } else if let Err(error) = temp_added_commands {
+        if let Err(error) = added_commands {
             panic!("Error in Bot::ready: Error while setting up test guild slash commands: {}", error)
         }
-
-        // becomes immutable
-        let added_commands = added_commands;
-
-        // displays all the added commands
-        for command in added_commands {
-            println!("Command {:?} had been added", command);
-        }
-
     }
 
     async fn interaction_create(&self, context: Context, 
                                 interaction: Interaction) {
 
-        // the command that had been used
-        let called = match interaction.application_command() {
-            Some(command) => command,
-            None => panic!("Error in Bot::interaction_create: Unable to retrieve the command that had been called."),
-        };
+        // if the interaction is a slash command
+        if let Some(command) = &interaction.clone().application_command() {
+            self.execute_slash_command(&context, &command).await;
+        }
 
-        // get the name of the command that had been called
-        let command_data = called.data.clone();
-        let command_name = command_data.name.as_str();
-
-        let bot_commands = self.commands();
-        if bot_commands.contains_key(command_name) {
-            
-            let command_to_run = &bot_commands[command_name];
-
-            // get the command's option value
-            let command_options = command_data
-                .options;
-
-            let command_content = command_to_run
-                .content(&context, &command_options)
-                .await;
-            
-            let command_embed = command_to_run
-                .embed(&context, &command_options)
-                .await;
-
-            let command_action_row = command_to_run
-                .action_row(&context, &command_options)
-                .await;
-
-            let interaction_creation = called.create_interaction_response(&context.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        let mut sendable = false;
-
-                        if let Some(content) = command_content {
-                            message.content(content);
-                            sendable = true;
-                        }
-
-                        if let Some(embed) = command_embed {
-                            message.add_embed(embed);
-                            sendable = true;
-                        }
-
-                        if let Some(action_row) = command_action_row {
-                            message.components(|components| {
-                                components.add_action_row(action_row)
-                            });
-                        }
-
-                        if !sendable {
-                            panic!("Error in Bot::interaction_create: Nothing to be sent.");
-                        }
-
-                        message
-                    })
-            }).await;
-
-            if let Err(error) = interaction_creation {
-                panic!("Error in Bot::interaction_create: Error creating response for command \"{}\": {}.", command_name, error)
-            }
-
+        // if the interaction is component interaction (button, etc.)
+        if let Some(component) = interaction.clone().message_component() {
+            println!("A button had been clicked.");
         }
 
     }
