@@ -9,11 +9,7 @@ use serenity::prelude::EventHandler;
 use serenity::client::Context;
 use serenity::model::gateway::Ready;
 use serenity::model::id::GuildId;
-use serenity::model::interactions::{
-    Interaction,
-    InteractionResponseType,
-};
-use serenity::model::interactions::message_component::MessageComponentInteraction;
+use serenity::model::interactions::Interaction;
 use serenity::model::interactions::application_command::ApplicationCommandInteraction;
 
 
@@ -88,90 +84,10 @@ trait BotUtils {
         
         // fins the command to run
         let command_to_run = &bot_commands[command_name];
-
-        // get the command's option value
-        let command_options = command_data
-            .options;
-
-        let command_content = command_to_run
-            .content(&context, &command_options)
-            .await;
-        
-        let command_embed = command_to_run
-            .embed(&context, &command_options)
-            .await;
-
-        let command_action_row = command_to_run
-            .action_row(&context, &command_options)
-            .await;
-
-        let interaction_creation = command.create_interaction_response(
-            &context.http, 
-            |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        let mut sendable = false;
-                        
-                        // check if the command has message content
-                        if let Some(content) = command_content {
-                            message.content(content);
-                            sendable = true;
-                        }
-
-                        // check if the command has an embed
-                        if let Some(embed) = command_embed {
-                            message.add_embeds(vec![embed]);
-                            sendable = true;
-                        }
-
-                        // check if the command has an action row
-                        if let Some(action_row) = command_action_row {
-                            message.components(|components| {
-                                components.add_action_row(action_row)
-                            });
-                        }
-
-                        // check if there is something to send
-                        if !sendable {
-                            panic!("Error in Bot::execute_slash_command: Nothing to be sent.");
-                        }
-                        
-                        message
-                    }
-                )
-            }
-        ).await;
-
-        if let Err(error) = interaction_creation {
-            panic!("Error in Bot::execute_slash_command: Error creating response for command \"{}\": {}.", command_name, error)
-        }
+        command_to_run.run(context, command).await;
 
     }
 
-    /// Executes the procedure for a message component interaction
-    async fn execute_component_interaction(self: &Self,
-                                           context: &Context,
-                                           component: &MessageComponentInteraction) {
-        let interaction_response = component.create_interaction_response(
-            &context.http, 
-            |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(
-                        |message| {
-                            message.content("You clicked on a button bro !");
-                            
-                            message
-                        }
-                    )
-            }
-        ).await;
-
-        if let Err(error) = interaction_response {
-            panic!("Error in Bot::execute_component_interaction: Error creating followup response: {}.", error)
-        }
-    }
 }
 
 #[async_trait]
@@ -225,19 +141,14 @@ impl EventHandler for Bot {
         }
     }
 
-    async fn interaction_create(&self, context: Context, 
+    async fn interaction_create(&self, 
+                                context: Context, 
                                 interaction: Interaction) {
 
         // if the interaction is a slash command
         if let Some(command) = &interaction.clone().application_command() {
             self.execute_slash_command(&context, &command).await;
         }
-
-        // if the interaction is component interaction (button, etc.)
-        if let Some(component) = interaction.clone().message_component() {
-            self.execute_component_interaction(&context, &component).await;
-        }
-
     }
 
 }
