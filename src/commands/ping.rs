@@ -8,7 +8,6 @@ use serenity::async_trait;
 use serenity::builder::{
     CreateEmbed,
     CreateApplicationCommandOption,
-    CreateActionRow,
     CreateButton,
 };
 use serenity::client::Context;

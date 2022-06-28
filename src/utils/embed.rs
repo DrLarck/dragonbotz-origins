@@ -15,8 +15,7 @@ use crate::utils::other::Utils;
 
 
 #[derive(Clone)]
-pub struct Embed<'a> {
-    context: &'a Context,
+pub struct Embed {
     author: Option<CreateEmbedAuthor>,
     color: Option<Color>,
     description: Option<String>,
@@ -26,12 +25,11 @@ pub struct Embed<'a> {
     title: Option<String>,
 }
 
-impl<'a> Embed<'a> {
+impl Embed {
 
     /// Returns a default embed
-    pub fn new(context: &'a Context) -> Self {
+    pub fn new(context: &Context) -> Self {
         let mut embed = Embed {
-            context,
             author: None,
             color: None,
             description: None,
